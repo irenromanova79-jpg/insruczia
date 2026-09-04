@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Расчёт потребностей в запасах — 1С:УНФ. Инструкция</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B241F;
+  --ink2:#4B5A50;
+  --ink3:#78877C;
+  --paper:#F5F7F1;
+  --card:#FFFFFF;
+  --grid:#E1E8DB;
+  --grid2:#D2DCCA;
+  --rule:#C3CDBB;
+  --go:#2E6B45;
+  --go-soft:#E6F0E6;
+  --flag:#A8392C;
+  --flag-soft:#F7E7E3;
+  --stamp:#C89412;
+  --stamp-soft:#FBF0D6;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid2) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid2) 1px, transparent 1px);
+  background-size:19px 19px, 19px 19px, 95px 95px, 95px 95px;
+  color:var(--ink);
+  font-family:"PT Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size:17px;
+  line-height:1.6;
+}
+
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px}
+
+/* ---------- Основная надпись (штамп) ---------- */
+.stamp{
+  background:var(--card);
+  border:1.5px solid var(--ink);
+  margin-bottom:34px;
+}
+.stamp__main{padding:26px 26px 20px;border-bottom:1.5px solid var(--ink)}
+.stamp__eyebrow{
+  font-family:"JetBrains Mono", ui-monospace, monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:14px;
+}
+.stamp__title{
+  font-family:"Oswald", "PT Sans", sans-serif;
+  font-weight:500;font-size:clamp(30px,5.2vw,52px);line-height:1.02;
+  text-transform:uppercase;letter-spacing:.005em;margin:0 0 12px;
+}
+.stamp__title em{font-style:normal;color:var(--go)}
+.stamp__lead{max-width:60ch;color:var(--ink2);margin:0;font-size:17px}
+.stamp__rows{display:grid;grid-template-columns:repeat(4,1fr)}
+.stamp__cell{padding:11px 14px;border-right:1px solid var(--rule)}
+.stamp__cell:last-child{border-right:0}
+.stamp__k{
+  font-family:"JetBrains Mono", monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:3px;
+}
+.stamp__v{font-family:"Oswald",sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.03em}
+
+/* ---------- Раскладка ---------- */
+.layout{display:block}
+@media (min-width:1020px){
+  .layout{display:grid;grid-template-columns:225px 1fr;gap:52px;align-items:start}
+}
+
+/* ---------- Навигация ---------- */
+.toc{margin-bottom:36px}
+@media (min-width:1020px){
+  .toc{position:sticky;top:24px;margin-bottom:0;max-height:calc(100vh - 48px);overflow:auto}
+}
+.toc__h{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink3);
+  padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:10px;
+}
+.toc__list{list-style:none;margin:0;padding:0}
+.toc__list a{
+  display:flex;gap:9px;padding:5px 0;
+  color:var(--ink2);text-decoration:none;font-size:14.5px;line-height:1.35;
+  border-bottom:1px solid transparent;
+}
+.toc__list a:hover{color:var(--ink)}
+.toc__list a.is-active{color:var(--go);font-weight:700}
+.toc__n{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink3);padding-top:2px;flex:none}
+.toc__list a.is-active .toc__n{color:var(--go)}
+
+/* ---------- Секции ---------- */
+.sec{margin-bottom:52px;scroll-margin-top:20px}
+.sec__head{display:flex;gap:14px;align-items:baseline;border-bottom:1.5px solid var(--ink);padding-bottom:9px;margin-bottom:20px}
+.sec__n{
+  font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--stamp);
+  font-weight:500;flex:none;padding-top:2px;
+}
+.sec__t{
+  font-family:"Oswald",sans-serif;font-weight:500;text-transform:uppercase;
+  font-size:clamp(20px,2.6vw,27px);line-height:1.12;letter-spacing:.01em;margin:0;
+}
+.sec p{margin:0 0 15px}
+.sec p:last-child{margin-bottom:0}
+
+h3.sub{
+  font-family:"Oswald",sans-serif;font-weight:400;text-transform:uppercase;
+  font-size:16px;letter-spacing:.05em;color:var(--ink);
+  margin:28px 0 11px;padding-left:11px;border-left:3px solid var(--stamp);
+}
+
+ul.plain{margin:0 0 15px;padding-left:20px}
+ul.plain li{margin-bottom:7px}
+ol.plain{margin:0 0 15px;padding-left:22px}
+ol.plain li{margin-bottom:7px}
+
+/* ---------- Элементы интерфейса программы ---------- */
+.f{
+  font-family:"JetBrains Mono",monospace;font-size:13.5px;
+  background:var(--card);border:1px solid var(--rule);
+  padding:1px 6px;white-space:nowrap;
+}
+.path{
+  font-family:"JetBrains Mono",monospace;font-size:13px;
+  background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--go);
+  padding:9px 12px;margin:0 0 15px;display:block;line-height:1.7;
+}
+.path b{color:var(--go);font-weight:500}
+
+/* ---------- Шаги ---------- */
+.steps{counter-reset:st;margin:0 0 4px;padding:0;list-style:none}
+.step{
+  position:relative;padding:0 0 22px 46px;margin:0;
+  border-left:1px solid var(--rule);
+}
+.step:last-child{border-left-color:transparent;padding-bottom:0}
+.step::before{
+  counter-increment:st;content:counter(st,decimal-leading-zero);
+  position:absolute;left:-15px;top:0;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--card);border:1.5px solid var(--ink);
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+}
+.step__t{
+  font-family:"Oswald",sans-serif;font-weight:500;text-transform:uppercase;
+  font-size:17px;letter-spacing:.02em;margin:3px 0 8px;
+}
+
+/* ---------- Врезки ---------- */
+.note{
+  border:1px solid var(--rule);background:var(--card);
+  padding:14px 16px;margin:0 0 18px;font-size:16px;
+}
+.note__k{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;display:block;margin-bottom:6px;color:var(--ink3);
+}
+.note p{margin:0 0 9px}
+.note p:last-child{margin-bottom:0}
+.note--do{background:var(--go-soft);border-color:#B9D3BB}
+.note--do .note__k{color:var(--go)}
+.note--warn{background:var(--flag-soft);border-color:#E0BDB4}
+.note--warn .note__k{color:var(--flag)}
+.note--calc{background:var(--stamp-soft);border-color:#E8D194}
+.note--calc .note__k{color:#8A6708}
+
+/* ---------- Таблицы ---------- */
+.tw{overflow-x:auto;margin:0 0 18px;border:1px solid var(--rule);background:var(--card)}
+table.t{border-collapse:collapse;width:100%;font-size:15.5px;min-width:440px}
+table.t th{
+  text-align:left;font-family:"Oswald",sans-serif;font-weight:400;
+  text-transform:uppercase;font-size:12px;letter-spacing:.07em;color:var(--ink2);
+  padding:9px 13px;border-bottom:1.5px solid var(--ink);vertical-align:bottom;
+}
+table.t td{padding:10px 13px;border-bottom:1px solid var(--grid2);vertical-align:top}
+table.t tr:last-child td{border-bottom:0}
+table.t td.k{font-family:"JetBrains Mono",monospace;font-size:13px;white-space:nowrap}
+
+/* ---------- Чек-лист ---------- */
+.check{list-style:none;margin:0 0 18px;padding:0;background:var(--card);border:1px solid var(--rule)}
+.check li{border-bottom:1px solid var(--grid2)}
+.check li:last-child{border-bottom:0}
+.check label{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;cursor:pointer}
+.check input{margin:4px 0 0;width:17px;height:17px;flex:none;accent-color:var(--go)}
+.check input:checked ~ span{color:var(--ink3);text-decoration:line-through}
+.check span{font-size:16px;line-height:1.45}
+
+.formula{
+  font-family:"JetBrains Mono",monospace;font-size:14px;line-height:1.75;
+  background:var(--card);border:1px dashed var(--rule);padding:12px 14px;margin:0 0 15px;
+  overflow-x:auto;white-space:pre;
+}
+
+.foot{
+  margin-top:60px;padding-top:16px;border-top:1.5px solid var(--ink);
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+
+a{color:var(--go)}
+:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+@media print{
+  body{background:#fff;font-size:11.5pt}
+  .wrap{max-width:none;padding:0}
+  .toc{display:none}
+  .layout{display:block}
+  .sec{page-break-inside:avoid;margin-bottom:26px}
+  .stamp{margin-bottom:22px}
+  .note,.tw,.check,.path,.formula{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="stamp">
+    <div class="stamp__main">
+      <div class="stamp__eyebrow">1С:Управление нашей фирмой · рабочая инструкция</div>
+      <h1 class="stamp__title">Расчёт<br>потребностей<br><em>в запасах</em></h1>
+      <p class="stamp__lead">Как настроить механизм, запустить расчёт и получить готовые заказы на производство и заказы поставщикам на сырьё. Инструкция рассчитана на снабженца и руководителя производства — специальных знаний по 1С не требуется.</p>
+    </div>
+    <div class="stamp__rows">
+      <div class="stamp__cell"><span class="stamp__k">Раздел</span><span class="stamp__v">Закупки · Производство</span></div>
+      <div class="stamp__cell"><span class="stamp__k">Объект</span><span class="stamp__v">Расчёт потребностей</span></div>
+      <div class="stamp__cell"><span class="stamp__k">Кому</span><span class="stamp__v">Снабжение, ПДО</span></div>
+      <div class="stamp__cell"><span class="stamp__k">Листов</span><span class="stamp__v">7 разделов</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <nav class="toc" aria-label="Содержание">
+      <div class="toc__h">Содержание</div>
+      <ol class="toc__list">
+        <li><a href="#s1"><span class="toc__n">01</span><span>Что делает механизм</span></a></li>
+        <li><a href="#s2"><span class="toc__n">02</span><span>Включение</span></a></li>
+        <li><a href="#s3"><span class="toc__n">03</span><span>Подготовка справочников</span></a></li>
+        <li><a href="#s4"><span class="toc__n">04</span><span>Срок пополнения</span></a></li>
+        <li><a href="#s5"><span class="toc__n">05</span><span>Порядок расчёта</span></a></li>
+        <li><a href="#s6"><span class="toc__n">06</span><span>Цепочка: продукция, потом сырьё</span></a></li>
+        <li><a href="#s7"><span class="toc__n">07</span><span>Если что-то пошло не так</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- 01 -->
+      <section class="sec" id="s1">
+        <div class="sec__head"><span class="sec__n">01</span><h2 class="sec__t">Что делает механизм</h2></div>
+        <p>Программа сопоставляет три вещи: что у вас есть на складе, что уже обещано клиентам и что вы хотите держать в запасе. Разницу она показывает как дефицит и предлагает его закрыть — заказом на производство или заказом поставщику на сырьё. Документы формируются автоматически, руками их набивать не нужно.</p>
+        <p>Цепочка в производстве всегда двухтактная: сначала планируется выпуск продукции, и только потом — сырьё под этот выпуск. Один расчёт всю цепочку не закроет, подробнее в разделе 06.</p>
+        <p>Расчёт не хранится в базе как документ. Это рабочая форма: открыли, посчитали, сформировали заказы, закрыли. Вернуться к вчерашнему расчёту нельзя, поэтому решения принимаются в момент работы с формой.</p>
+        <div class="note">
+          <span class="note__k">Что нужно понимать сразу</span>
+          <p>Механизм считает ровно по тем данным, которые заполнены в карточках номенклатуры. Если карточки пустые — расчёт покажет пустую таблицу и это не ошибка программы. Подготовка справочников из раздела 03 обязательна.</p>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="sec" id="s2">
+        <div class="sec__head"><span class="sec__n">02</span><h2 class="sec__t">Включение</h2></div>
+        <p>Делается один раз. Нужны права администратора.</p>
+        <span class="path"><b>Настройки</b> › Ещё больше возможностей › <b>Закупки</b> › блок «Планирование» › поставить флажок <b>«Расчёт потребностей»</b></span>
+        <p>После этого пункт <span class="f">Планирование › Расчёт потребностей</span> появится сразу в трёх разделах — «Закупки», «Склад» и «Производство». Это одна и та же форма, открывайте откуда удобнее.</p>
+      </section>
+
+      <!-- 03 -->
+      <section class="sec" id="s3">
+        <div class="sec__head"><span class="sec__n">03</span><h2 class="sec__t">Подготовка справочников</h2></div>
+        <p>Самый важный этап. Пока он не сделан, расчёт работать не будет. Заполняется по каждой номенклатурной позиции, которая должна попадать в планирование.</p>
+
+        <h3 class="sub">Карточка номенклатуры, блок «Закупка и производство»</h3>
+        <div class="tw">
+          <table class="t">
+            <thead><tr><th>Поле</th><th>Что указать</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Способ пополнения</td><td><b>Производство</b> — для готовых смесей, премиксов, фасованной продукции. <b>Закупка</b> — для сырья, ингредиентов, упаковки. <b>Переработка</b> — если операцию выполняет подрядчик из вашего сырья, например контрактная фасовка. Без этого поля позиция в расчёт не попадёт вообще.</td></tr>
+              <tr><td class="k">Поставщик</td><td>Для закупаемого сырья. Подставится в заказ автоматически, но на этапе планирования его можно поменять.</td></tr>
+              <tr><td class="k">Изготовитель</td><td>Для производимых позиций — подразделение или участок, который выпускает продукцию.</td></tr>
+              <tr><td class="k">Спецификация</td><td>Рецептура. Без неё программа посчитает потребность в готовой продукции, но не развернёт её до ингредиентов.</td></tr>
+              <tr><td class="k">Срок пополнения (дн.)</td><td>Сколько дней проходит от оформления заказа до появления позиции на складе. Как определить — раздел 04.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub">Минимальный и максимальный уровень запаса</h3>
+        <p>Задаётся отдельно, в карточке номенклатуры в блоке «Управление запасами» по кнопке «Создать». Указываются организация, сама номенклатура, при необходимости характеристика и склад — и границы запаса.</p>
+        <p>Работает это так: пополнение предлагается только тогда, когда остаток <b>опустился до минимума или ниже</b>. В этот момент программа рекомендует заказать столько, чтобы на складе оказался максимум.</p>
+        <p>Пример при минимуме 1 и максимуме 5: остатка нет — рекомендация заказать 5; остаток 1 — рекомендация заказать 4; остаток 2 — рекомендации не будет, потому что до минимума ещё не дошли. Это нормальное поведение, а не ошибка расчёта.</p>
+        <p>Заполнять уровни обязательно только если вы работаете «на склад». При работе строго под заказ их можно оставить пустыми.</p>
+
+        <div class="note note--do">
+          <span class="note__k">Чек-лист готовности</span>
+          <ul class="check">
+            <li><label><input type="checkbox"><span>Включена настройка «Расчёт потребностей»</span></label></li>
+            <li><label><input type="checkbox"><span>У всей продукции проставлен способ пополнения «Производство»</span></label></li>
+            <li><label><input type="checkbox"><span>У всего сырья, ингредиентов и упаковки проставлен способ пополнения «Закупка»</span></label></li>
+            <li><label><input type="checkbox"><span>У продукции указаны изготовитель и спецификация (рецептура)</span></label></li>
+            <li><label><input type="checkbox"><span>У промежуточных смесей и полуфабрикатов тоже стоит «Производство» и своя спецификация</span></label></li>
+            <li><label><input type="checkbox"><span>У сырья указан поставщик</span></label></li>
+            <li><label><input type="checkbox"><span>Везде заполнен срок пополнения в днях</span></label></li>
+            <li><label><input type="checkbox"><span>Для складских позиций заданы минимум и максимум запаса</span></label></li>
+            <li><label><input type="checkbox"><span>Старые заказы покупателей, которые не будут исполняться, закрыты или отменены</span></label></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="sec" id="s4">
+        <div class="sec__head"><span class="sec__n">04</span><h2 class="sec__t">Срок пополнения</h2></div>
+        <p>Программа этот срок не вычисляет — его вносит человек. От него зависит, за сколько дней до отгрузки система предложит разместить заказ. Занижение срока приводит к системным опозданиям: сырьё приезжает, когда партия уже должна быть отгружена.</p>
+        <p>Срок считается от момента оформления заказа, а не от начала работ. То есть в него входит всё: согласование, очередь в цеху, сами операции, технологические паузы, упаковка.</p>
+
+        <h3 class="sub">Способ первый — от факта</h3>
+        <p>Самый надёжный. По закрытым заказам за последние 6–12 месяцев возьмите пары дат:</p>
+        <ul class="plain">
+          <li>для производства — дата «Заказа на производство» и дата документа «Производство»;</li>
+          <li>для закупки — дата «Заказа поставщику» и дата «Приходной накладной».</li>
+        </ul>
+        <div class="note note--calc">
+          <span class="note__k">Ключевой момент</span>
+          <p>Берите не среднее значение, а 80–90-й перцентиль. Средний срок означает, что ровно в половине случаев вы опоздаете. Разница между медианой и 90-м перцентилем — это и есть честный буфер, посчитанный по вашим собственным данным.</p>
+        </div>
+
+        <h3 class="sub">Способ второй — от норматива</h3>
+        <p>Если фактических данных ещё нет, цикл раскладывается на слагаемые.</p>
+        <div class="formula">Рабочих дней на партию = Σ нормо-часов ÷ (рабочих мест × часов в смене × смен × k)
+
+  k — коэффициент выполнения норм, реально 0,7–0,85
+
+Полный цикл = очередь + работа + межоперационные + тех. паузы
+Календарные дни = рабочие дни × 1,4   (при пятидневке)</div>
+        <ul class="plain">
+          <li><b>Очередь</b> — сколько заказов в среднем висит в работе, делённое на количество закрываемых за день. Обычно это самое крупное слагаемое, и его чаще всего забывают.</li>
+          <li><b>Технологические и контрольные паузы</b> — входной контроль сырья, ожидание протокола испытаний, карантин партии до получения результатов лаборатории, выдержка смеси. Календарное время, наймом людей не ускоряется. Для пищевого производства это часто больше, чем само смешивание и фасовка.</li>
+          <li><b>Межоперационные</b> — ожидание между переделами, мойка и переналадка линии между продуктами, перемещения между участками. Ориентировочно 20–30% от трудоёмкости.</li>
+        </ul>
+        <div class="note note--warn">
+          <span class="note__k">Учтите</span>
+          <p>Срок считается на типовую партию, а не на штуку. Расчёт по партии в 50 единиц при типовом заказе в 5 завысит срок в разы.</p>
+          <p>Загрузка цеха меняется по сезонам, а вместе с ней и очередь. Ставьте срок по загруженному сезону или пересматривайте цифру раз в квартал.</p>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="sec" id="s5">
+        <div class="sec__head"><span class="sec__n">05</span><h2 class="sec__t">Порядок расчёта</h2></div>
+        <p>Форма состоит из трёх стадий, переключатель в верхней части: <b>Рекомендации</b> → <b>Планирование</b> → <b>Заказы</b>. Идти нужно последовательно.</p>
+
+        <ol class="steps">
+          <li class="step">
+            <div class="step__t">Задать горизонт</div>
+            <p>Справа, на вкладке «Настройки», два поля: <span class="f">Периодичность планирования</span> и <span class="f">Количество периодов</span>. Они перемножаются и дают глубину расчёта.</p>
+            <p>Горизонт должен быть длиннее самого долгого срока пополнения по всей цепочке — от закупки сырья до выпуска готовой продукции, иначе потребность в ингредиентах не попадёт в окно и система её не увидит. Для производства рабочий вариант — «Неделя × 8», то есть два месяца вперёд. Если сырьё импортное и едет полтора-два месяца, берите «Неделя × 12».</p>
+            <p><span class="f">Начало планирования</span> ставьте сегодняшним днём. Если сдвинуть дату назад, просроченные заказы перестанут считаться просроченными и картина будет выглядеть благополучнее, чем есть.</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Выбрать базу расчёта</div>
+            <p>Поле <span class="f">Рассчитывать</span>:</p>
+            <ul class="plain">
+              <li><b>По заказам</b> — потребность берётся из открытых заказов покупателей и заказ-нарядов. Подходит для работы под заказ.</li>
+              <li><b>По продажам</b> — потребность прогнозируется по статистике отгрузок. Ниже появится выбор метода: среднедневные продажи или средние продажи по дням недели с учётом тренда, а также период анализа. Чем длиннее период, тем точнее прогноз; на сезонном товаре берите не меньше года.</li>
+            </ul>
+            <p>Поле <span class="f">Группировать по</span> задаёт вид таблицы. Начинайте с варианта «Номенклатуре» — он самый читаемый. Если нужно понять, под какой именно заказ не хватает, переключитесь на «Заказам и номенклатуре».</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Выставить фильтры</div>
+            <p>Соседняя вкладка справа. Главное поле — вид пополнения: «Закупка и переработка», «Производство» или «Все». По умолчанию стоит «Закупка и переработка», поэтому продукция собственного изготовления в расчёт не попадает — это самая частая причина пустой таблицы у производственников. Переработка здесь означает давальческую схему: вы отдаёте свои материалы, подрядчик возвращает готовое изделие.</p>
+            <p>Также укажите организацию. Дополнительно доступны отборы по поставщику, номенклатуре, категории, состоянию заказа, его оплате и подразделению — они пригодятся, когда захотите спланировать закупку у одного конкретного поставщика.</p>
+            <p>Флажок <span class="f">Только дефицит</span> уберёт из таблицы позиции, по которым всё в порядке. Включайте всегда.</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Рассчитать и прочитать таблицу</div>
+            <p>Кнопка <span class="f">Рассчитать</span> слева вверху.</p>
+            <div class="tw">
+              <table class="t">
+                <thead><tr><th>Колонка</th><th>Что показывает</th></tr></thead>
+                <tbody>
+                  <tr><td class="k">Дефицит</td><td>Нехватка по позиции, а также начальный остаток и границы запаса из карточки</td></tr>
+                  <tr><td class="k">Просрочено</td><td>Потребность по заказам, дата отгрузки которых уже прошла. Долг перед клиентами на сегодня</td></tr>
+                  <tr><td class="k">Колонки с датами</td><td>Плановое движение остатков и потребности по периодам</td></tr>
+                  <tr><td class="k">Пополнение запасов</td><td>Сколько нужно заказать или произвести</td></tr>
+                  <tr><td class="k">Значок слева</td><td>Предупреждение об отклонении — стоит раскрыть и посмотреть</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Потребность складывается из трёх источников: заказы покупателей, минимальный уровень запаса и материалы с закладки «Материалы» проведённых заказов на производство. Из неё вычитаются текущий остаток и уже размещённые заказы поставщикам — то, что вы заказали вчера, повторно заказать не предложат.</p>
+            <p>Флажок <span class="f">По заказам</span> внизу панели настроек добавляет расшифровку: под каждой позицией видно, какой именно заказ создал потребность. Строку расшифровки можно открыть правой кнопкой мыши и посмотреть сам заказ.</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Отобрать позиции к заказу</div>
+            <p>Флажки в колонке «Заказать». Можно отметить вручную или нажать <span class="f">Заполнить по дефициту</span> — отметятся все дефицитные позиции разом. Количество в строках можно скорректировать.</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Стадия «Планирование»</div>
+            <p>Переключитесь на неё в верхней части формы. Останутся только отмеченные строки, к ним подтянутся поставщик, изготовитель и способ пополнения из карточек, а также вид цены и цена по прошлым документам.</p>
+            <p>Здесь можно разделить объём: часть закупить, часть произвести, или распределить между несколькими поставщиками — проставьте флажки напротив нужных вариантов и укажите количество в каждом.</p>
+            <p>Способ пополнения меняется прямо на этой стадии: если позиция обычно производится, но в этот раз проще купить — переключите на «Закупку» и выберите контрагента. Если поставщик в карточке не заполнен, укажите его здесь вручную, иначе заказ сформируется без контрагента.</p>
+            <p>Обратите внимание на опции разделения заказов: их можно разбить <b>по датам поступления</b> — когда одну и ту же позицию нужно получать частями к разным срокам, и <b>по заказам покупателей</b> — тогда программа сформирует отдельный документ на то, что идёт под конкретного клиента, и отдельный на пополнение свободного склада.</p>
+          </li>
+          <li class="step">
+            <div class="step__t">Сформировать заказы</div>
+            <p>Кнопка <span class="f">Сформировать заказы</span> создаёт документы и переводит на стадию «Заказы». Прямо из списка их можно открыть, отредактировать, провести, отменить проведение или пометить на удаление.</p>
+            <p>Проверьте документы до проведения: даты, цены, поставщиков. После проведения заказы уходят в работу.</p>
+          </li>
+        </ol>
+
+        <div class="note note--do">
+          <span class="note__k">Совет</span>
+          <p>Когда подберёте рабочую комбинацию настроек и фильтров, нажмите ссылку «Сохранить настройки» внизу панели. В следующий раз форма откроется уже готовой к работе.</p>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="sec" id="s6">
+        <div class="sec__head"><span class="sec__n">06</span><h2 class="sec__t">Цепочка: продукция, потом сырьё</h2></div>
+        <p>Момент, который чаще всего упускают. Один расчёт не закроет всю цепочку.</p>
+
+        <div class="note note--do">
+          <span class="note__k">Главное правило</span>
+          <p>Потребность в сырье программа берёт не из рецептуры напрямую, а из <b>проведённых незавершённых заказов на производство</b> — из их закладки «Материалы». Нет такого заказа — сырья для расчёта не существует.</p>
+        </div>
+
+        <p>Отсюда порядок работы:</p>
+        <ol class="plain">
+          <li>Прогон с фильтром «Производство» → сформировать и <b>провести</b> заказы на производство продукции.</li>
+          <li>Прогон с фильтром «Закупка и переработка» → потребность развернётся по рецептурам до ингредиентов → сформировать заказы поставщикам.</li>
+        </ol>
+
+        <h3 class="sub">Первый прогон нужен не всегда</h3>
+        <p>Он существует только для того, чтобы создать заказы на производство. Если эти заказы у вас появляются иначе — технолог заводит их вручную, планировщик делает по плану выпуска, или их создают на основании заказа покупателя — первый прогон пропускается. Расчёту неважно, откуда взялся документ, важно, что он проведён.</p>
+        <p>Первый прогон всё же стоит делать, когда продукцию нужно выпускать не только под заказы клиентов, но и на склад до минимального уровня, когда заказов много и сводить их руками долго, или когда рецептура многоуровневая и легко пропустить промежуточный передел.</p>
+
+        <h3 class="sub">Какие заказы на производство попадают в расчёт</h3>
+        <div class="tw">
+          <table class="t">
+            <thead><tr><th>Состояние документа</th><th>Учитывается</th></tr></thead>
+            <tbody>
+              <tr><td>Проведён, не завершён</td><td><b>Да.</b> Это невыполненное обязательство цеха, сырьё под него ещё нужно</td></tr>
+              <tr><td>Записан, но не проведён</td><td>Нет. Для расчёта такого документа не существует</td></tr>
+              <tr><td>Завершён</td><td>Нет. Продукция выпущена, материалы списаны, потребность закрыта</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>В фильтрах есть отбор <span class="f">Завершён (заказ на производство)</span> — значение «Нет» оставляет ровно то, что ждёт обеспечения. Рядом отбор по состоянию заказа: будьте с ним осторожны. Если поставить только «В производстве», сырьё под заказы, которые ещё не начали делать, в расчёт не попадёт — а это как раз то, что нужно закупать в первую очередь. Раз в несколько прогонов снимайте отбор по состоянию и сравнивайте итоги.</p>
+
+        <div class="note note--warn">
+          <span class="note__k">Незакрытые заказы тянут потребность бесконечно</span>
+          <p>Заказ отработан, продукция отгружена, но состояние осталось незавершённым — и он продолжает требовать сырьё в каждом расчёте. Проверяйте список заказов на производство и закрывайте отработанные до того, как планировать закупку. Иначе система заставит купить сырьё под то, что уже сделано.</p>
+        </div>
+        <p>Если продукт многоуровневый — фасованный премикс собирается из базовой смеси и вкусоароматической части, а базовая смесь в свою очередь из наполнителя, кислоты и консерванта — прогонов будет столько, сколько уровней в рецептуре. Каждый следующий расчёт видит сырьё того уровня, заказы по которому вы только что провели.</p>
+        <div class="note note--do">
+          <span class="note__k">Критерий, что вы закончили</span>
+          <p>Работайте итерациями: рассчитать → отметить → сформировать → провести → снова рассчитать. Планирование завершено, когда очередной расчёт возвращает пустую таблицу — весь дефицит разобран.</p>
+        </div>
+        <p>Перед первым планированием сложного продукта проверьте рецептуры отчётом <span class="f">Нормативный состав изделия</span> — он разворачивает всю структуру по уровням. Если на каком-то уровне забыт ингредиент или у промежуточной смеси не проставлен способ пополнения «Производство», цепочка оборвётся именно там, и вы это увидите заранее.</p>
+        <div class="note note--warn">
+          <span class="note__k">Про сроки в цепочке</span>
+          <p>Сроки пополнения по уровням складываются. Если фасовка занимает 3 дня, изготовление базовой смеси 2 дня, а ингредиент едет 30 дней — реальный цикл около 35 дней. Программа не сворачивает это в одно число: срок нужно заполнить на каждом уровне отдельно, тогда расчёт правильно расставит даты по переделам.</p>
+        </div>
+        <div class="note note--calc">
+          <span class="note__k">Два места, где нужен человек</span>
+          <p><b>Кратность закупки.</b> Расчёт выдаёт точную потребность — например, 43 кг. Сырьё продаётся мешками по 25 кг. Округлить до кратности нужно вручную на стадии «Планирование», программа этого не сделает.</p>
+          <p><b>Сроки годности.</b> Механизм оперирует количеством и не различает партии по остаточному сроку. Остаток, который истекает через неделю, он посчитает пригодным для заказа, который встанет в производство через месяц. Перед крупными закупками сверяйтесь с отчётом по срокам годности.</p>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="sec" id="s7">
+        <div class="sec__head"><span class="sec__n">07</span><h2 class="sec__t">Если что-то пошло не так</h2></div>
+        <div class="tw">
+          <table class="t">
+            <thead><tr><th>Симптом</th><th>Причина и что делать</th></tr></thead>
+            <tbody>
+              <tr><td>Таблица пустая после расчёта</td><td>В карточках номенклатуры не заполнен способ пополнения. Проверьте несколько позиций из тех, что ожидали увидеть.</td></tr>
+              <tr><td>Видна продукция, но не видно сырья</td><td>Не сделан второй прогон, либо у продукции не заполнена спецификация-рецептура.</td></tr>
+              <tr><td>Часть сырья не попала в расчёт</td><td>Заказ на производство записан, но не проведён; уже завершён; либо отсечён фильтром по состоянию заказа. Снимите отбор по состоянию и пересчитайте.</td></tr>
+              <tr><td>Заказы клиентов не попадают в расчёт</td><td>Заказы закрыты, отгружены полностью, либо их дата отгрузки выходит за горизонт планирования. Увеличьте количество периодов.</td></tr>
+              <tr><td>Огромная цифра в колонке «Просрочено»</td><td>Чаще всего это заказы, которые фактически отгружены, но не закрыты в базе. Такие висяки раздувают дефицит и заставляют закупать лишнее. Разберите их до планирования.</td></tr>
+              <tr><td>Программа предлагает закупить слишком много</td><td>Завышен максимальный уровень запаса, либо в расчёт попали просроченные заказы-висяки.</td></tr>
+              <tr><td>Материал приезжает с опозданием, хотя заказ был по плану</td><td>Занижен срок пополнения. Пересчитайте его по фактическим датам, см. раздел 04.</td></tr>
+              <tr><td>Программа предупреждает, что есть даты раньше периода планирования</td><td>В заказе на производство дата старта раньше начала планирования. Откройте заказ и сдвиньте дату, либо сдвиньте начало планирования назад.</td></tr>
+              <tr><td>Прогноз по продажам не похож на правду</td><td>Слишком короткий период анализа. Для сезонного товара берите не меньше года.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note note--warn">
+          <span class="note__k">Ограничение, о котором стоит знать заранее</span>
+          <p>Планы продаж механизм не видит. Если вы ведёте плановые объёмы отдельным документом, в расчёт потребностей они не попадут — только фактические заказы покупателей и статистика продаж.</p>
+          <p>Обходной приём: оформить внутренний заказ покупателя, указав покупателем собственную компанию или подразделение, и внести туда плановые позиции. При формировании заказа поставщику по такой строке <b>уберите связь с заказом покупателя</b> — иначе поступивший товар сразу зарезервируется под этот фиктивный заказ, и отгрузить его настоящему клиенту не получится.</p>
+        </div>
+
+        <div class="note">
+          <span class="note__k">Регламент работы</span>
+          <p>Оптимальная периодичность — раз в неделю, в один и тот же день, перед размещением заказов поставщикам. Ежедневный расчёт имеет смысл только для оперативной проверки «что горит прямо сейчас», с горизонтом в несколько дней.</p>
+          <p>Раз в квартал пересматривайте сроки пополнения и границы запасов по ходовым позициям — они устаревают вслед за загрузкой цеха и поведением поставщиков.</p>
+        </div>
+      </section>
+
+      <div class="foot">
+        <span>1С:Управление нашей фирмой</span>
+        <span>Расчёт потребностей в запасах</span>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc__list a'));
+  var map = {};
+  links.forEach(function(a){
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) map[id] = a;
+  });
+  if (!('IntersectionObserver' in window)) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting) {
+        links.forEach(function(l){ l.classList.remove('is-active'); });
+        var a = map[e.target.id];
+        if (a) a.classList.add('is-active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  Object.keys(map).forEach(function(id){ obs.observe(document.getElementById(id)); });
+})();
+</script>
+</body>
+</html>
